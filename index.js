@@ -13,6 +13,7 @@ const calls = {
         const id = process.env.MUSHQ_A
         const bait = process.env.MUSHQ_B
         await baitFish(db, id, bait)
+        //remove the bait from their inventory
         calls['updateFish'](id)
     },
     'updateFish': async (id) => {

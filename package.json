@@ -10,5 +10,8 @@
   "license": "ISC",
   "dependencies": {
     "nedb-promises": "^4.0.1"
+  },
+  "devDependencies": {
+    "jest": "^25.1.0"
   }
 }

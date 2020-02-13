@@ -1,5 +1,11 @@
 const Datastore = require('nedb-promises')
 const db = Datastore.create('./fish.db')
+const rhost = new require("@digibear/rhost-wrapper")({
+    user: "#123",
+    password: "xxxxxxxxxx",
+    port: 2222,
+    encode: true // On by default to fix an stunnel bug.
+});
 
 const calls = {
     'baitFish': async () => {
@@ -9,11 +15,11 @@ const calls = {
         await baitFish(db, id, bait)
         calls['updateFish'](id)
     },
-    'updateFish':async (id) => {
-        let fish = await db.findOne({id})
+    'updateFish': async (id) => {
+        let fish = await db.findOne({ id })
         fish = fish.fish
-        fish = Object.keys(fish).sort((a,b)=>fish[a]>fish[b]).slice(0,4)
-        console.log(fish)
+        fish = Object.keys(fish).sort((a, b) => fish[a] > fish[b]).slice(0, 4).join()
+        await rhost.post(`@set ${id}=top_five_fish:${fish}`)
     }
 }
 

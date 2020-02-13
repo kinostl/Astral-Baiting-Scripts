@@ -8,8 +8,10 @@ describe('empty sector', () => {
     })
 
     test('adds a new sector', async () => {
-        await baitFish(db, 1, "Spass")
-        expect(2 + 2).toBe(4)
+        let results=await db.findOne({id:1})
+        expect(results).toBeNull()
+        results = await baitFish(db, 1, "Spass")
+        expect(results).not.toBeNull()
     })
 })
 
@@ -25,12 +27,18 @@ describe('existing sector', () => {
     })
 
     test('initalizes a fish', async () => {
+        let results=await db.findOne({id:1})
+        expect(results.fish["Astrofin"]).toBeCloseTo(0.0)
         await baitFish(db, 1, "Astrofin")
-        expect(2 + 2).toBe(4)
+        results=await db.findOne({id:1})
+        expect(results.fish["Astrofin"]).toBeCloseTo(1.0)
     })
 
     test('increases existing fish', async () => {
+        let results=await db.findOne({id:1})
+        expect(results.fish["Spass"]).toBeCloseTo(1.0)
         await baitFish(db, 1, "Spass")
-        expect(2 + 2).toBe(4)
+        results=await db.findOne({id:1})
+        expect(results.fish["Spass"]).toBeCloseTo(2.0)
     })
 })

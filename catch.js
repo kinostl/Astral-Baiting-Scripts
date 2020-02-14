@@ -10,7 +10,18 @@ let rooms = await db.find({
 let roomPromises = rooms.reduce((room) => {
     const fish = room.fish
     const fishOptions = Object.keys(fish).filter((e)=>fish[e]>0.0).sort((a, b) => fish[a] > fish[b])
-    const rollTable = []
+    let rollTable = fishOptions.reduce((acc, curr)=>{
+        acc[curr]=fish[curr]
+        if(acc['last_value']){
+            acc[curr]+=acc['last_value']
+        }
+        acc['last_value'] = acc[curr]
+        return acc
+    }, {'last_value':null})
+    if(rollTable['last_value'] < 50.0){
+        rollTable['nothing']=50.0
+    }
+    delete rollTable['last_value']
     return async () => {
         //get the lcon(players)
         let players = await rhost.get(`lcon(${room.id}/player)`)

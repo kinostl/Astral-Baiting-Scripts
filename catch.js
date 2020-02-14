@@ -35,8 +35,11 @@ let roomPromises = rooms.reduce((room) => {
         //loop through the players and for each one
         players.forEach((player) => {
             //roll on the table for a fish
-            const roll = random(1,50,true)
+            const roll = random(0,50,true)
             //get fish from rollTable here
+            const caughtFish = Object.keys(rollTable)
+            .filter((e)=>{rollTable[e] <= roll})
+            .shift()
 
 
             //if they catch one, add it to their score

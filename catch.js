@@ -15,6 +15,9 @@ let roomPromises = rooms.reduce((room) => {
         if(acc['last_value']){
             acc[curr]+=acc['last_value']
         }
+        if(acc[curr]>50.0){
+            acc[curr]=50.0
+        }
         acc['last_value'] = acc[curr]
         return acc
     }, {'last_value':null})

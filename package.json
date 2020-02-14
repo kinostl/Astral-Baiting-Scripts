@@ -10,6 +10,7 @@
   "license": "ISC",
   "dependencies": {
     "@digibear/rhost-wrapper": "^1.1.3",
+    "lodash": "^4.17.15",
     "nedb-promises": "^4.0.1"
   },
   "devDependencies": {

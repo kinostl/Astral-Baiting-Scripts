@@ -5,36 +5,50 @@ async function startRaid(db, hp, players) {
         title,
         hp,
         current_player:null,
+        card_option: null,
         players,
         hands:null,
         deck:null,
+        discards:null,
     })
     return newGame._id
 }
 
 async function startRound(db, _id) {
     let hands = {}
-    let deck = []
+    let deck = shuffle([])
+    let discards = []
     let current_player = 0
 
     //Start the round by distributing a card to each player
     players.forEach((player) => {
-        hands[player] = [sample(deck)]
-        //remove card from deck
+        hands[player] = deck.shift()
     })
 
     await db.update({ _id  }, {
         current_player,
         hands,
-        deck
+        deck,
+        discards
     } , { upsert: true })
 }
 
 async function startTurn(db, _id){
     //get Game
     let game = await db.findOne({_id})
-    hands[currentPlayer].push(sample(deck))
     //Give the player a second card
+    game.card_option = game.deck.shift()
+    let card_equipped = game.hands[game.current_player]
+    let turnInfo="Discards: "
+    turnInfo = game.discards.reduce((discards, card, index)=>`${discards}\n${index}. ${card}`, turnInfo)
+    turnInfo = 
+    `${turnInfo}
+Your Hand:
+1. ${card_equipped.name} (Equipped)
+2. ${card_option.name} (Drawn)
+View discard effects with \`effects\` or \`effect \\[card name\\]\`
+Discard a card with \`play #\` or \`play [card name]\`
+    `
     //Return a string that does all of the following.
         //Inform the player of the current board state
             /**
@@ -55,13 +69,19 @@ async function startTurn(db, _id){
         //Ask them which card the discard
         //Ask them to make necessary choices
 
+    await db.update({ _id  }, game , { upsert: true })
+    return turnInfo
 }
+
+async function startSpecialEffect(db, _id){}
+async function resolveSpecialEffect(db, _id){}
 
 async function resolveTurn(db, _id){
     //get Game
-    //Remove necessary players from the round
+    let game = await db.findOne({_id})
     //Discard the card
     //Check for special effects
+    //Remove necessary players from the round
     //Check to see if the game has ended
     //Yes
         //endRaid
@@ -70,10 +90,12 @@ async function resolveTurn(db, _id){
 }
 
 async function endRound(db, _id){
+    let game = await db.findOne({_id})
     //Reduce the HP and Give the winner the Catch Token
     //While Raid has HP, start a round
 }
 
 async function endRaid(db, _id){
+    let game = await db.findOne({_id})
     //Determine the winner, and reward them the Raid
 }

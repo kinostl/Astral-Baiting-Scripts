@@ -3,7 +3,6 @@ const shuffle = require('lodash/shuffle')
 const random = require('lodash/random')
 //occurs hourly via crontab
 let rooms = await db.find({
-    id: { $exists: true },
     fish: { $exists: true }
 })
 //loop through every room and in each one
@@ -24,7 +23,7 @@ let roomPromises = rooms.map((room) => {
     delete rollTable['last_value']
     return async () => {
         //get the lcon(players)
-        let players = await rhost.get(`lcon(${room.id}/player)`)
+        let players = await rhost.get(`lcon(${room._id}/player)`)
         players = players.split(' ')
         //randomize the list for fairness
         players = shuffle(players)
@@ -41,7 +40,7 @@ let roomPromises = rooms.map((room) => {
             //if they catch one, add it to their score
             if (caughtFish != 'nothing') {
                 //reduce the chance of that fish on the bait table
-                await db.update({ id: room.id }, { $dec: {[`fish.${caughtFish}`]: 1.0}})
+                await db.update({ _id: room._id }, { $dec: {[`fish.${caughtFish}`]: 1.0}})
                 //inform them of their catch with a pemit
                 await rhost.post(`@pemit ${player}=You caught a ${caughtFish}`)
                 //actually give them a fish somehow

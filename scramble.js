@@ -1,9 +1,9 @@
-async function scrambleFish(db, id, bait) {
-    let sector = await db.findOne({ id })
+async function scrambleFish(db, _id, bait) {
+    let sector = await db.findOne({ _id })
     if (!sector) {
         const fish = require('./fish')
         sector = {
-            'id': id,
+            '_id': _id,
             'fish': fish,
         }
     }
@@ -12,7 +12,7 @@ async function scrambleFish(db, id, bait) {
     if (sector.fish[bait] < 0.0) {
         sector.fish[bait] = 0.0
     }
-    await db.update({ id: sector.id }, sector, { upsert: true })
+    await db.update({ _id: sector._id }, sector, { upsert: true })
 }
 
 module.exports = scrambleFish

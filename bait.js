@@ -1,9 +1,9 @@
-async function baitFish(db, id, bait) {
-    let sector = await db.findOne({ id })
+async function baitFish(db, _id, bait) {
+    let sector = await db.findOne({ _id })
     if (!sector) {
         const fish = require('./fish')
         sector = {
-            'id': id,
+            '_id': _id,
             'fish': fish,
         }
     }
@@ -13,7 +13,7 @@ async function baitFish(db, id, bait) {
     } else {
         sector.fish[bait] = 1.0
     }
-    await db.update({ id: sector.id }, sector, { upsert: true })
+    await db.update({ _id: sector._id }, sector, { upsert: true })
 }
 
 module.exports = baitFish

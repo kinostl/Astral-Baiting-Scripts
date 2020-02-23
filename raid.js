@@ -5,7 +5,10 @@ async function startRaid(db, hp, players) {
         title,
         hp,
         current_player:null,
+        current_target:null,
         card_option: null,
+        card_equipped: null,
+        card_in_effect: null,
         players,
         hands:null,
         deck:null,
@@ -30,56 +33,60 @@ async function startRound(db, _id) {
         hands,
         deck,
         discards
-    } , { upsert: true })
+    })
+
+    return hands
 }
 
 async function startTurn(db, _id){
     //get Game
     let game = await db.findOne({_id})
     //Give the player a second card
+    game.card_equipped = game.hands[game.current_player]
     game.card_option = game.deck.shift()
-    let card_equipped = game.hands[game.current_player]
-    let turnInfo="Discards: "
-    turnInfo = game.discards.reduce((discards, card, index)=>`${discards}\n${index}. ${card}`, turnInfo)
-    turnInfo = 
-    `${turnInfo}
-Your Hand:
-1. ${card_equipped.name} (Equipped)
-2. ${card_option.name} (Drawn)
-View discard effects with \`effects\` or \`effect \\[card name\\]\`
-Discard a card with \`play #\` or \`play [card name]\`
-    `
-    //Return a string that does all of the following.
-        //Inform the player of the current board state
-            /**
-             * Discards:
-             * 1. Phasers (Jin), 2. Warp Core (Daz), 3. ...
-             * 
-             * Your Hand:
-             * 1. Phasers (Equipped)
-             *     Value: 1
-             *     Effect: Target another ship and name a Non-Phaser System. If target ship has that system active, they're out of the round
-             * 2. Shields (Drawn)
-             *     Value: 4
-             *     Effect: Until your next turn, ignore all effects that target you.
-             * 
-             * View all effects with `effects`.
-             * Discard a card with `play #`
-             */
-        //Ask them which card the discard
-        //Ask them to make necessary choices
+    let turnInfo =
+`==Discards==
+${game.discards.map((card, index)=>`${index+1}. ${card}`).join('\n')}
 
-    await db.update({ _id  }, game , { upsert: true })
+==Your Hand==
+1.(Equipped) ${game.card_equipped.name} 
+2.(Drawn)    ${game.card_option.name} 
+View discard effects with \`effects\` or \`effect \\[card name\\]\`
+Discard a card with \`play #\` or \`play \\[card name\\]\``
+
+    await db.update({ _id  }, game )
     return turnInfo
 }
 
-async function startSpecialEffect(db, _id){}
-async function resolveSpecialEffect(db, _id){}
-
-async function resolveTurn(db, _id){
+async function resolveStart(db, _id, choice){
     //get Game
     let game = await db.findOne({_id})
     //Discard the card
+    let chosen=null
+    let discard=null
+    if(choice == '1' || choice == game.card_equipped){
+        chosen = game.card_equipped
+        discard = game.card_option
+    }
+    if(choice == '2' || choice == game.card_option){
+        chosen = game.card_option
+        discard = game.card_equipped
+    }
+
+    if(chosen && discard){
+        game.card_equipped=null
+        game.card_option=null
+        game.hands[game.current_player]=chosen
+        game.card_in_effect=discard
+    }else{
+        return "Not a card option. Please choose 1 or 2."
+    }
+}
+
+async function startSpecialEffect(db, _id){}
+async function resolveSpecialEffect(db, _id, choice){}
+
+async function resolveTurn(db, _id){
     //Check for special effects
     //Remove necessary players from the round
     //Check to see if the game has ended

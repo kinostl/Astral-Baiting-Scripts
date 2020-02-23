@@ -90,28 +90,32 @@ async function resolveStart(db, _id, choice){
 
 async function startSpecialEffect(db, _id){
     let game = await db.findOne({_id})
+    //These just need to return a string telling targetting information.
+    //No need to actually edit the game.
     let effects={
-        "phasers": () => { },
-        "sensor_array": () => { },
-        "computer": () => { },
-        "shields": () => { },
-        "scrambler": () => { },
-        "teleporters": () => { },
-        "warp_core": () => { },
-        "tractor_beam": () => { },
+        "phasers": 'Phasers ready! Who are you going to shoot?',
+        "sensor_array": 'Sensors Array aligned! Who\'s power grid are you going to scan?',
+        "computer": 'Wide network scan engaged! Who would you like to disable?',
+        "shields": 'Shields activated! You\'re safe from damage until your next turn.',
+        "scrambler": 'Scramblers configured! Who\'s power grid are you going to redistribute?',
+        "teleporters": 'Teleporters fully powered! Who are you going to swap places with?',
+        "warp_core": 'Warp core ejected! You\'re safe from that exploding now.',
+        "tractor_beam": 'Tractor beam hold lost! You\'re out of the round.',
     }
+
+    //if its warp core, tractor beam, or shield, don't bother waiting for a target.
+    //call the resolver instantly
+
+    //else build the target list.
 }
 async function resolveSpecialEffect(db, _id, choice){
     let game = await db.findOne({_id})
     let effects={
-        "phasers": () => { },
-        "sensor_array": () => { },
-        "computer": () => { },
-        "shields": () => { },
-        "scrambler": () => { },
-        "teleporters": () => { },
-        "warp_core": () => { },
-        "tractor_beam": () => { },
+        "phasers": (game) => { },
+        "sensor_array": (game) => { },
+        "computer": (game) => { },
+        "scrambler": (game) => { },
+        "teleporters": (game) => { },
     }
     //Check for special effects
     //Remove necessary players from the round

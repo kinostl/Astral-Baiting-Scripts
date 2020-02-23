@@ -44,6 +44,8 @@ async function startTurn(db, _id){
     //Give the player a second card
     game.card_equipped = game.hands[game.current_player]
     game.card_option = game.deck.shift()
+    //if card_equipped is warp core
+    //check to see if it explodes
     let turnInfo =
 `==Discards==
 ${game.discards.map((card, index)=>`${index+1}. ${card}`).join('\n')}
@@ -51,6 +53,7 @@ ${game.discards.map((card, index)=>`${index+1}. ${card}`).join('\n')}
 ==Your Hand==
 1.(Equipped) ${game.card_equipped.name} 
 2.(Drawn)    ${game.card_option.name} 
+
 View discard effects with \`effects\` or \`effect \\[card name\\]\`
 Discard a card with \`play #\` or \`play \\[card name\\]\``
 
@@ -78,17 +81,44 @@ async function resolveStart(db, _id, choice){
         game.card_option=null
         game.hands[game.current_player]=chosen
         game.card_in_effect=discard
+        await db.update({ _id }, game)
+        return startSpecialEffect(db, _id)
     }else{
         return "Not a card option. Please choose 1 or 2."
     }
 }
 
-async function startSpecialEffect(db, _id){}
-async function resolveSpecialEffect(db, _id, choice){}
-
-async function resolveTurn(db, _id){
+async function startSpecialEffect(db, _id){
+    let game = await db.findOne({_id})
+    let effects={
+        "phasers": () => { },
+        "sensor_array": () => { },
+        "computer": () => { },
+        "shields": () => { },
+        "scrambler": () => { },
+        "teleporters": () => { },
+        "warp_core": () => { },
+        "tractor_beam": () => { },
+    }
+}
+async function resolveSpecialEffect(db, _id, choice){
+    let game = await db.findOne({_id})
+    let effects={
+        "phasers": () => { },
+        "sensor_array": () => { },
+        "computer": () => { },
+        "shields": () => { },
+        "scrambler": () => { },
+        "teleporters": () => { },
+        "warp_core": () => { },
+        "tractor_beam": () => { },
+    }
     //Check for special effects
     //Remove necessary players from the round
+}
+
+async function resolveTurn(db, _id){
+    let game = await db.findOne({_id})
     //Check to see if the game has ended
     //Yes
         //endRaid

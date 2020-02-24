@@ -20,6 +20,7 @@ async function startRaid(db, catch_rating, players) {
 async function startRound(db, _id) {
     let hands = {}
     let deck = shuffle([])
+    deck.shift()
     let discards = []
     let current_player = 0
 
@@ -88,7 +89,7 @@ async function resolveStart(db, _id, choice){
     }
 }
 
-async function startSpecialEffect(game){
+function startSpecialEffect(game){
     //These just need to return a string telling targetting information.
     //No need to actually edit the game.
     let effects={
@@ -104,37 +105,47 @@ async function startSpecialEffect(game){
 
     if(['warp_core', 'tractor_beam', 'shield'].indexOf(game.card_in_effect) > -1){
         //Just give this back to the handler and let it call resolveTurn
-        return [true, effects[game.card_in_effect]]
+        return [false, effects[game.card_in_effect]]
     }
 
-    return [false,
+    return [true,
 `
 ${effects[game.card_in_effect]}
 
 ==Available Targets==
 ${game.players.map((player, index)=>`#${index}. ${player.name}`)}
+
+${game.card_in_effect != 'phasers' ?
+    `Choose your target with \`target #\`` :
+    `Choose your target  and guess with \`target # \[Card\]\``
+    }
 `
     ]
 }
 async function resolveSpecialEffect(db, _id, choice){
     let game = await db.findOne({_id})
-    let effects={
-        "phasers": (game) => { },
-        "sensor_array": (game) => { },
-        "computer": (game) => { },
-        "scrambler": (game) => { },
-        "teleporters": (game) => { },
-    }
-    //if its warp core, tractor beam, or shield, don't bother waiting for a target.
-    //Check for special effects
+    //Effects
     //Remove necessary players from the round
+    let effects={
+        "phasers": (game, choice) => { },
+        "sensor_array": (game, choice) => { },
+        "computer": (game, choice) => { },
+        "scrambler": (game, choice) => { },
+        "teleporters": (game, choice) => { },
+    }
+    let result = effects[game.card_in_effect](game, choice)
+    [valid, game, result] = result
+    if (valid) {
+        await db.update({ _id }, game)
+        return resolveTurn(game, result)
+    }
+    return result
 }
 
-async function resolveTurn(db, _id){
-    let game = await db.findOne({_id})
-    //Check to see if the game has ended
+function resolveTurn(game, result){
+    //Check to see if the Round has ended
     //Yes
-        //endRaid
+        //endRound
     //No
         //starTurn
 }

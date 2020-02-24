@@ -122,24 +122,40 @@ ${game.card_in_effect != 'phasers' ?
 `
     ]
 }
-async function resolveSpecialEffect(db, _id, choice){
+async function resolveSpecialEffect(db, _id, choices){
     let game = await db.findOne({_id})
+    let result
     //Effects
     //Remove necessary players from the round
     let effects={
-        "phasers": (game, choice) => { },
-        "sensor_array": (game, choice) => { },
-        "computer": (game, choice) => { },
-        "scrambler": (game, choice) => { },
-        "teleporters": (game, choice) => { },
+        "phasers": (game, target, guess) => { 
+        },
+        "sensor_array": (game, target) => { },
+        "computer": (game, target) => { },
+        "scrambler": (game, target) => { },
+        "teleporters": (game, target) => { },
     }
-    let result = effects[game.card_in_effect](game, choice)
-    [valid, game, result] = result
-    if (valid) {
-        await db.update({ _id }, game)
-        return resolveTurn(game, result)
+
+    function checkValidPlayer(player){
+
     }
-    return result
+
+    if(game.card_in_effect == 'phasers'){
+            if(Array.isArray(choices) && choices.length == 2){
+                let [target, guess] = choices
+                if(guess < 2 || guess > 8) return `Guess must be between 2 and 8.`
+                if(!checkValidPlayer(target)) return `Please try again with a valid target.`
+                result = effects[game.card_in_effect](game, target, guess)
+            }else{
+                return `Choose your target and guess with \`target # \[Card\]\``
+            }
+    }else{
+        if (!checkValidPlayer(choices)) return `Please try again with a valid target.`
+        result = effects[game.card_in_effect](game, choices)
+    }
+    [game, result] = result
+    await db.update({ _id }, game)
+    return resolveTurn(game, result)
 }
 
 function resolveTurn(game, result){

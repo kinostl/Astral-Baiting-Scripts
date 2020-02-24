@@ -1,9 +1,9 @@
-async function startRaid(db, hp, players) {
+async function startRaid(db, catch_rating, players) {
     const title="Cool Fish Name"
     //Add the game to the db
     const newGame = await db.insert({
         title,
-        hp,
+        catch_rating,
         current_player:null,
         current_target:null,
         card_option: null,
@@ -82,14 +82,13 @@ async function resolveStart(db, _id, choice){
         game.hands[game.current_player]=chosen
         game.card_in_effect=discard
         await db.update({ _id }, game)
-        return startSpecialEffect(db, _id)
+        return startSpecialEffect(game)
     }else{
         return "Not a card option. Please choose 1 or 2."
     }
 }
 
-async function startSpecialEffect(db, _id){
-    let game = await db.findOne({_id})
+async function startSpecialEffect(game){
     //These just need to return a string telling targetting information.
     //No need to actually edit the game.
     let effects={
@@ -103,10 +102,19 @@ async function startSpecialEffect(db, _id){
         "tractor_beam": 'Tractor beam hold lost! You\'re out of the round.',
     }
 
-    //if its warp core, tractor beam, or shield, don't bother waiting for a target.
-    //call the resolver instantly
+    if(['warp_core', 'tractor_beam', 'shield'].indexOf(game.card_in_effect) > -1){
+        //Just give this back to the handler and let it call resolveTurn
+        return [true, effects[game.card_in_effect]]
+    }
 
-    //else build the target list.
+    return [false,
+`
+${effects[game.card_in_effect]}
+
+==Available Targets==
+${game.players.map((player, index)=>`#${index}. ${player.name}`)}
+`
+    ]
 }
 async function resolveSpecialEffect(db, _id, choice){
     let game = await db.findOne({_id})
@@ -117,6 +125,7 @@ async function resolveSpecialEffect(db, _id, choice){
         "scrambler": (game) => { },
         "teleporters": (game) => { },
     }
+    //if its warp core, tractor beam, or shield, don't bother waiting for a target.
     //Check for special effects
     //Remove necessary players from the round
 }
@@ -132,8 +141,8 @@ async function resolveTurn(db, _id){
 
 async function endRound(db, _id){
     let game = await db.findOne({_id})
-    //Reduce the HP and Give the winner the Catch Token
-    //While Raid has HP, start a round
+    //Give the winner the Catch Token
+    //While no one has reached the Catch Rating, start a round
 }
 
 async function endRaid(db, _id){

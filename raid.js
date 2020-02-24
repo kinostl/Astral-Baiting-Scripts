@@ -77,6 +77,10 @@ async function resolveStart(db, _id, choice){
         discard = game.card_equipped
     }
 
+    if(discard.strength == 8){
+        return 'Playing the tractor beam is an instant loss. Please choose again.'
+    }
+
     if(chosen && discard){
         game.card_equipped=null
         game.card_option=null
@@ -100,10 +104,9 @@ function startSpecialEffect(game){
         "scrambler": 'Scramblers configured! Who\'s power grid are you going to redistribute?',
         "teleporters": 'Teleporters fully powered! Who are you going to swap places with?',
         "warp_core": 'Warp core ejected! You\'re safe from that exploding now.',
-        "tractor_beam": 'Tractor beam hold lost! You\'re out of the round.',
     }
 
-    if(['warp_core', 'tractor_beam', 'shield'].indexOf(game.card_in_effect) > -1){
+    if(['warp_core', 'shield'].indexOf(game.card_in_effect) > -1){
         //Just give this back to the handler and let it call resolveTurn
         return [false, effects[game.card_in_effect]]
     }
@@ -136,10 +139,32 @@ async function resolveSpecialEffect(db, _id, choices){
             }
             return [game, `Missed!`]
         },
-        "sensor_array": (game, target) => { },
-        "computer": (game, target) => { },
-        "scrambler": (game, target) => { },
-        "teleporters": (game, target) => { },
+        "sensor_array": (game, target) => {
+            return [game, `${game.hand[target]}`]
+         },
+        "computer": (game, target) => {
+            let target_player = game.hands[target]
+            let current_player = game.hands[game.current_player]
+            if(target_player.strength < current_player.strength){
+                game.players[target].dead=true
+                return [game, `${target_player}. Hacked!`]
+            }
+            game.players[game.current_player].dead = true
+            return [game, `${target_player}. Counter-hacked!`]
+         },
+        "scrambler": (game, target) => { 
+            let target_player = game.hands[target]
+            if(target_player.strength == 8) game.players[target].dead = true
+            //discard logic
+            game.hands[target] = game.deck.shift()
+            return [game, `Scrambled!`]
+         },
+        "teleporters": (game, target) => {
+            let teleporter = game.hands[target]
+            game.hands[target] = game.hands[game.current_player]
+            game.hands[game.current_player] = teleporter
+            return [game, `Teleported!`]
+         },
     }
 
     function checkValidPlayer(player){

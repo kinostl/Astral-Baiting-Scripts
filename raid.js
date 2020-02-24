@@ -129,6 +129,11 @@ async function resolveSpecialEffect(db, _id, choices){
     //Remove necessary players from the round
     let effects={
         "phasers": (game, target, guess) => { 
+            let player = game.hands[target]
+            if(player.strength == guess){
+                game.players[target].dead=true
+            }
+            return game
         },
         "sensor_array": (game, target) => { },
         "computer": (game, target) => { },
